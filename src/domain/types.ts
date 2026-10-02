@@ -48,3 +48,48 @@ export type TransactionPage = {
   page: number
   page_size: number
 }
+
+export type DemoUser = {
+  name: string
+  email: string
+}
+
+export type ExtractedTransaction = TransactionInput & {
+  extraction_id: string
+  description: string
+  statement_date: string
+  extraction_confidence: 'high' | 'medium' | 'demo'
+  selected: boolean
+  source: 'pdf' | 'demo'
+}
+
+export type AnalysisResult = ExtractedTransaction & {
+  transaction_id: string
+  response?: PredictionResponse
+  analysis_status: 'analyzed' | 'error'
+  analysis_error?: string
+}
+
+export type AnalysisSummary = {
+  total: number
+  analyzed: number
+  potentialFraud: number
+  genuine: number
+  totalSpend: number
+  fraudAmount: number
+}
+
+export type StatementAnalysis = {
+  analysis_id: string
+  statement_name: string
+  uploaded_at: string
+  extraction_mode: 'pdf' | 'demo'
+  extraction_note?: string
+  transactions: AnalysisResult[]
+  summary: AnalysisSummary
+  status: 'complete' | 'partial' | 'error'
+}
+
+export type StatementHistoryRecord = Pick<StatementAnalysis, 'analysis_id' | 'statement_name' | 'uploaded_at' | 'summary' | 'status' | 'extraction_mode'>
+
+export type AnalysisWorkflow = 'upload' | 'extracting' | 'review' | 'analyzing' | 'complete' | 'error'

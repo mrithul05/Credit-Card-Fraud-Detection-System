@@ -1,0 +1,18 @@
+import { ArrowLeft, Download, FileText, ShieldAlert } from 'lucide-react'
+import { Link, useSearchParams } from 'react-router-dom'
+import { AnalysisCharts } from '../components/analysis/AnalysisCharts'
+import { FraudSignalsList } from '../components/analysis/FraudSignalsList'
+import { RiskSummary } from '../components/analysis/RiskSummary'
+import { PageHeader } from '../components/ui/PageHeader'
+import { StateMessage } from '../components/ui/StateMessage'
+import { getStatementAnalysis } from '../services/statementHistory'
+import { formatCurrency } from '../components/transactions/transactionFormatters'
+
+export function AnalysisResultsPage() {
+  const [params] = useSearchParams()
+  const analysis = params.get('analysis') ? getStatementAnalysis(params.get('analysis') || '') : undefined
+  if (!analysis) return <div className="page-container page-container--narrow"><PageHeader eyebrow="Analysis results" title="No analysis selected" description="Choose a completed statement analysis from the dashboard to review its results." /><section className="panel"><StateMessage type="empty" title="Your results are not available here" description="The analysis may have expired from this browser, or this route was opened directly." action={<Link className="button button--primary" to="/analyze-statement">Analyze a statement</Link>} /></section></div>
+
+  const riskLabel = analysis.summary.potentialFraud === 0 ? 'Low review signal' : analysis.summary.potentialFraud <= 2 ? 'Medium review signal' : 'Elevated review required'
+  return <div className="page-container"><PageHeader eyebrow="Step 04 · Results" title="Statement analysis complete" description="Sentinel has reviewed the selected transactions and highlighted model-based signals that may deserve a closer look." action={<div className="results-actions"><Link className="button button--secondary" to="/analyze-statement"><ArrowLeft size={15} />Analyze another</Link><button className="button button--primary" onClick={() => window.print()}><Download size={15} />Save review</button></div>} /><div className="analysis-file-banner"><span className="analysis-file-banner__icon"><FileText size={19} /></span><div><strong>{analysis.statement_name}</strong><span>Completed {new Intl.DateTimeFormat('en-IN', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(analysis.uploaded_at))} · {analysis.extraction_mode === 'demo' ? 'Frontend demo analysis' : 'PDF text extraction'}</span></div><span className="risk-pill"><ShieldAlert size={15} />{riskLabel}</span></div>{analysis.extraction_note && <div className="demo-banner"><ShieldAlert size={15} /><span>{analysis.extraction_note}</span></div>}<RiskSummary summary={analysis.summary} /><section className="risk-callout"><div className="risk-callout__icon"><ShieldAlert size={22} /></div><div><p className="eyebrow">Overall statement risk</p><h2>{riskLabel}</h2><p>{analysis.summary.potentialFraud ? `${analysis.summary.potentialFraud} of ${analysis.summary.analyzed} analyzed transactions crossed the model's review threshold.` : 'No selected transaction crossed the model threshold in this review.'} This is a probabilistic review signal, not a guaranteed determination.</p></div><div className="risk-callout__amount"><span>Potential fraud amount</span><strong>{formatCurrency(analysis.summary.fraudAmount)}</strong></div></section><AnalysisCharts transactions={analysis.transactions} /><FraudSignalsList transactions={analysis.transactions} /><section className="panel results-footnote"><ShieldAlert size={17} /><p><strong>Responsible use note:</strong> Model outputs help prioritize human review. They do not confirm fraud, establish intent, or replace your bank's official dispute process.</p></section></div>
+}

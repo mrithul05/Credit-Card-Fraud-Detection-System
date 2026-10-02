@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Filter, RotateCcw, Search } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import type { StoredTransaction, TransactionPage, TransactionQuery } from '../domain/types'
 import { getPredictionHistory, subscribeToHistory } from '../services/transactionHistory'
 import { PageHeader } from '../components/ui/PageHeader'
@@ -11,10 +11,13 @@ const pageSize = 6
 const initialQuery: TransactionQuery = { page: 1, page_size: pageSize, sort_by: 'timestamp', sort_direction: 'desc', prediction: 'all' }
 
 export function TransactionHistoryPage() {
+  const [params] = useSearchParams()
+  const suspiciousOnly = params.get('prediction') === 'potential_fraud'
   const [transactions, setTransactions] = useState<StoredTransaction[]>(() => getPredictionHistory())
-  const [query, setQuery] = useState<TransactionQuery>(initialQuery)
+  const [query, setQuery] = useState<TransactionQuery>(() => ({ ...initialQuery, prediction: suspiciousOnly ? 'potential_fraud' : 'all' }))
 
   useEffect(() => subscribeToHistory(() => setTransactions(getPredictionHistory())), [])
+  useEffect(() => setQuery((current) => ({ ...current, prediction: suspiciousOnly ? 'potential_fraud' : current.prediction === 'potential_fraud' ? 'all' : current.prediction, page: 1 })), [suspiciousOnly])
 
   const categories = useMemo(() => ['all', ...new Set(transactions.map((transaction) => transaction.merchant_category).filter(Boolean))], [transactions])
   const data = useMemo(() => buildPage(transactions, query), [transactions, query])
@@ -29,13 +32,16 @@ export function TransactionHistoryPage() {
   }
 
   function clearFilters() {
-    setQuery(initialQuery)
+    setQuery({ ...initialQuery, prediction: suspiciousOnly ? 'potential_fraud' : 'all' })
   }
 
+  const title = suspiciousOnly ? 'Transactions requiring review' : 'Reviewed statement transactions'
+  const description = suspiciousOnly ? 'Potential-fraud signals from the statement analysis are ready for human review.' : 'Review transactions extracted from statements and the model-based signals created in this browser demo.'
   return <div className="page-container">
-    <PageHeader eyebrow="Review queue" title="Extracted transactions" description="Transactions analyzed from uploaded statements are stored locally in this browser for this frontend demonstration." action={<span className="record-count">{transactions.length.toLocaleString()} transactions</span>} />
-    <section className="panel filters-panel"><div className="filter-heading"><div><Filter size={18} /><strong>Find a statement transaction</strong></div><button className="button button--ghost button--small" onClick={clearFilters}><RotateCcw size={14} />Clear filters</button></div><div className="filters-grid"><label className="search-field"><span className="sr-only">Search extracted transactions</span><Search size={16} /><input value={query.search || ''} placeholder="Search ID, merchant, device, or location" onChange={(event) => updateQuery({ search: event.target.value })} /></label><label className="field field--compact"><span>Review status</span><select value={query.prediction} onChange={(event) => updateQuery({ prediction: event.target.value as TransactionQuery['prediction'] })}><option value="all">All statuses</option><option value="genuine">Genuine</option><option value="potential_fraud">Potential fraud</option></select></label><label className="field field--compact"><span>Merchant category</span><select value={query.merchant_category || 'all'} onChange={(event) => updateQuery({ merchant_category: event.target.value })}>{categories.map((category) => <option key={category} value={category}>{category === 'all' ? 'All categories' : category}</option>)}</select></label></div></section>
-    <section className="panel panel--flush"><div className="panel__heading panel__heading--table"><div><p className="eyebrow">Results</p><h2>Statement transactions</h2></div><span className="panel-note">Sorted by {query.sort_by === 'timestamp' ? 'date' : query.sort_by}</span></div>{data.items.length ? <><TransactionTable transactions={data.items} sortBy={query.sort_by} sortDirection={query.sort_direction} onSort={sort} /><Pagination page={data.page} totalPages={totalPages} onPage={(page) => setQuery((current) => ({ ...current, page }))} /></> : <StateMessage type="empty" title={transactions.length ? 'No transactions found' : 'No statement transactions yet'} description={transactions.length ? 'Try a broader search or clear one of the filters.' : 'Analyze a statement to extract and review its transactions.'} action={transactions.length ? <button className="button button--secondary" onClick={clearFilters}>Clear filters</button> : <Link className="button button--secondary" to="/analyze-statement">Analyze a statement</Link>} />}</section>
+    <PageHeader eyebrow="Step 05 · Review transactions" title={title} description={description} action={<span className="record-count">{data.total.toLocaleString()} transactions</span>} />
+    {suspiciousOnly && <div className="demo-banner"><Filter size={16} /><span><strong>Suspicious review.</strong> This queue shows transactions that crossed the conceptual review threshold.</span></div>}
+    <section className="panel filters-panel"><div className="filter-heading"><div><Filter size={18} /><strong>Find a statement transaction</strong></div><button className="button button--ghost button--small" onClick={clearFilters}><RotateCcw size={14} />Clear filters</button></div><div className="filters-grid"><label className="search-field"><span className="sr-only">Search reviewed transactions</span><Search size={16} /><input value={query.search || ''} placeholder="Search ID, category, device, or location" onChange={(event) => updateQuery({ search: event.target.value })} /></label><label className="field field--compact"><span>Review status</span><select value={query.prediction} onChange={(event) => updateQuery({ prediction: event.target.value as TransactionQuery['prediction'] })}><option value="all">All statuses</option><option value="genuine">Genuine</option><option value="potential_fraud">Potential fraud</option></select></label><label className="field field--compact"><span>Merchant category</span><select value={query.merchant_category || 'all'} onChange={(event) => updateQuery({ merchant_category: event.target.value })}>{categories.map((category) => <option key={category} value={category}>{category === 'all' ? 'All categories' : category}</option>)}</select></label></div></section>
+    <section className="panel panel--flush"><div className="panel__heading panel__heading--table"><div><p className="eyebrow">Review queue</p><h2>{suspiciousOnly ? 'Suspicious transactions' : 'Statement transactions'}</h2></div><span className="panel-note">Sorted by {query.sort_by === 'timestamp' ? 'date' : query.sort_by}</span></div>{data.items.length ? <><TransactionTable transactions={data.items} sortBy={query.sort_by} sortDirection={query.sort_direction} onSort={sort} /><Pagination page={data.page} totalPages={totalPages} onPage={(page) => setQuery((current) => ({ ...current, page }))} /></> : <StateMessage type="empty" title={transactions.length ? 'No transactions found' : 'No statement transactions yet'} description={transactions.length ? 'Try a broader search or clear one of the filters.' : 'Upload a statement to extract and review its transactions.'} action={transactions.length ? <button className="button button--secondary" onClick={clearFilters}>Clear filters</button> : <Link className="button button--secondary" to="/analyze-statement">Upload a statement</Link>} />}</section>
   </div>
 }
 

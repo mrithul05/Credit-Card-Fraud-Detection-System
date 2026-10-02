@@ -1,26 +1,15 @@
 import type { AnalysisResult, ExtractedTransaction, PredictionResponse, StatementAnalysis, AnalysisSummary, TransactionInput } from '../domain/types'
-import { createDemoPrediction } from '../data/demoMetrics'
-import { fraudApi } from './fraudApi'
+import { analyzeTransaction } from './demoStatementAnalysis'
 import { createStoredTransaction, savePrediction } from './transactionHistory'
-
-export const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === 'true'
 
 type ProgressHandler = (completed: number, total: number) => void
 
 export async function analyzeStatementTransactions(statementName: string, rows: ExtractedTransaction[], onProgress?: ProgressHandler): Promise<StatementAnalysis> {
   const analysisId = `analysis-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
   const transactions: AnalysisResult[] = []
-  let usedDemoFallback = DEMO_MODE
-
   for (let index = 0; index < rows.length; index += 1) {
     const row = rows[index]
-    let response: PredictionResponse
-    try {
-      response = DEMO_MODE ? createDemoPrediction(row) : await fraudApi.predict(toPredictionInput(row))
-    } catch {
-      usedDemoFallback = true
-      response = createDemoPrediction(row)
-    }
+    const response: PredictionResponse = await analyzeTransaction(row)
     const stored = createStoredTransaction(toPredictionInput(row), response)
     savePrediction(stored)
     transactions.push({ ...row, transaction_id: stored.transaction_id, response, analysis_status: 'analyzed' })
@@ -33,8 +22,8 @@ export async function analyzeStatementTransactions(statementName: string, rows: 
     analysis_id: analysisId,
     statement_name: statementName,
     uploaded_at: new Date().toISOString(),
-    extraction_mode: usedDemoFallback ? 'demo' : 'pdf',
-    extraction_note: usedDemoFallback ? 'Some or all results use clearly labeled frontend demo predictions because the FastAPI model was unavailable or demo mode was enabled.' : undefined,
+    extraction_mode: rows.some((row) => row.source === 'demo') ? 'demo' : 'pdf',
+    extraction_note: rows.some((row) => row.source === 'demo') ? 'Sample transactions are being used to demonstrate the browser-based review workflow.' : 'Transactions were analyzed with the frontend demonstration risk-signal service.',
     transactions,
     summary,
     status: 'complete',

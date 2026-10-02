@@ -26,12 +26,6 @@ export type StoredTransaction = TransactionInput & PredictionResponse & {
 
 export type Transaction = StoredTransaction
 
-export type BackendHealth = {
-  status: 'ok' | 'model_unavailable'
-  model_loaded?: boolean
-  detail?: string
-}
-
 export type TransactionQuery = {
   search?: string
   prediction?: 'all' | Prediction

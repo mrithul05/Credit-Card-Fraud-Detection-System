@@ -3,8 +3,8 @@ import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts'
 type RiskDistributionProps = { genuine: number; fraud: number }
 
 export function RiskDistribution({ genuine, fraud }: RiskDistributionProps) {
-  const data = [{ name: 'Genuine', value: genuine, color: '#2d8a68' }, { name: 'Potential Fraud', value: fraud, color: '#c96b39' }]
-  return <div className="risk-chart" aria-label={`Genuine ${genuine}; Potential Fraud ${fraud}`}>
+  const data = [{ name: 'No review signal', value: genuine, color: '#2d8a68' }, { name: 'Potential fraud', value: fraud, color: '#c96b39' }]
+  return <div className="risk-chart" aria-label={`No review signal ${genuine}; Potential fraud ${fraud}`}>
     <ResponsiveContainer width="100%" height={210}>
       <PieChart>
         <Pie data={data} dataKey="value" nameKey="name" innerRadius={62} outerRadius={86} paddingAngle={3} strokeWidth={0}>

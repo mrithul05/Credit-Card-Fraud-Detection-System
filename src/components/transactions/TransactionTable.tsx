@@ -16,22 +16,22 @@ export function TransactionTable({ transactions, sortBy, sortDirection, onSort }
     <div className="table-wrap">
       <table className="transaction-table">
         <thead><tr>
-          <th>Transaction</th>
-          <SortableHeader label="Date & time" column="timestamp" sortBy={sortBy} sortDirection={sortDirection} onSort={onSort} />
           <th>Merchant</th>
+          <SortableHeader label="Date & time" column="timestamp" sortBy={sortBy} sortDirection={sortDirection} onSort={onSort} />
+          <th>Category</th>
           <SortableHeader label="Amount" column="amount" sortBy={sortBy} sortDirection={sortDirection} onSort={onSort} />
           <th>Location</th>
-          <SortableHeader label="Prediction" column="prediction" sortBy={sortBy} sortDirection={sortDirection} onSort={onSort} />
+          <SortableHeader label="Review status" column="prediction" sortBy={sortBy} sortDirection={sortDirection} onSort={onSort} />
           <th><span className="sr-only">View details</span></th>
         </tr></thead>
         <tbody>
           {transactions.map((transaction) => <tr key={transaction.transaction_id}>
-            <td><Link className="transaction-id" to={`/transactions/${transaction.transaction_id}`}>{transaction.transaction_id}</Link><span className="table-subtext">{transaction.device_type} · {transaction.is_foreign_transaction ? 'Foreign' : 'Domestic'}</span></td>
+            <td><Link className="transaction-id" to={`/transactions/${transaction.transaction_id}`}>{transaction.merchant_name || transaction.merchant_category}</Link><span className="table-subtext">{transaction.merchant_name ? transaction.merchant_category : 'Transaction'}</span></td>
             <td><span className="table-primary">{formatDate(transaction.timestamp)}</span><span className="table-subtext">{formatTime(transaction.timestamp)}</span></td>
             <td>{transaction.merchant_category}</td>
             <td className="amount-cell">{formatCurrency(transaction.amount)}</td>
             <td>{transaction.location}</td>
-            <td><div className="prediction-cell"><StatusBadge prediction={transaction.is_fraud === 1 ? 'potential_fraud' : 'genuine'} /><span className="probability">{formatProbability(transaction.fraud_probability)} probability</span></div></td>
+            <td><div className="prediction-cell"><StatusBadge prediction={transaction.is_fraud === 1 ? 'potential_fraud' : 'genuine'} /><span className="probability">{formatProbability(transaction.fraud_probability)} fraud probability</span></div></td>
             <td><Link className="icon-link" to={`/transactions/${transaction.transaction_id}`} aria-label={`View ${transaction.transaction_id}`}><ExternalLink size={16} /></Link></td>
           </tr>)}
         </tbody>

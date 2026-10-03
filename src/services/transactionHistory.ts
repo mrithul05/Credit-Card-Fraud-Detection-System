@@ -44,10 +44,11 @@ function createTransactionId() {
   return `APP-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
 }
 
-export function createStoredTransaction(input: TransactionInput, response: PredictionResponse): StoredTransaction {
+export function createStoredTransaction(input: TransactionInput, response: PredictionResponse, merchantName?: string): StoredTransaction {
   return {
     ...input,
     ...response,
+    ...(merchantName ? { merchant_name: merchantName } : {}),
     transaction_id: createTransactionId(),
     checked_at: new Date().toISOString(),
   }

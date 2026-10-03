@@ -10,7 +10,7 @@ export async function analyzeStatementTransactions(statementName: string, rows: 
   for (let index = 0; index < rows.length; index += 1) {
     const row = rows[index]
     const response: PredictionResponse = await analyzeTransaction(row)
-    const stored = createStoredTransaction(toPredictionInput(row), response)
+    const stored = createStoredTransaction(toPredictionInput(row), response, row.description)
     savePrediction(stored)
     transactions.push({ ...row, transaction_id: stored.transaction_id, response, analysis_status: 'analyzed' })
     onProgress?.(index + 1, rows.length)

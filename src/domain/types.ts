@@ -22,6 +22,7 @@ export type PredictionResponse = {
 export type StoredTransaction = TransactionInput & PredictionResponse & {
   transaction_id: string
   checked_at: string
+  merchant_name?: string
 }
 
 export type Transaction = StoredTransaction

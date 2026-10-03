@@ -272,7 +272,7 @@ a { color: inherit; text-decoration: none; }
 .sidebar-user__copy strong, .sidebar-user__copy small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sidebar-user__copy strong { color: #e9f2f5; font-size: 11px; }
 .sidebar-user__copy small { color: #78919e; font-size: 9px; margin-top: 3px; }
-.sidebar-user__logout { display: grid; place-items: center; border: 0; color: #78919e; background: transparent; padding: 4px; }
+.sidebar-user__logout { display: inline-flex; align-items: center; gap: 5px; border: 0; color: #9cb0b9; background: transparent; padding: 4px; font-size: 10px; font-weight: 600; }
 .sidebar-user__logout:hover { color: #fff; }
 .statement-intro-grid { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(270px, .65fr); gap: 18px; align-items: start; }
 .upload-panel { padding: 27px; }

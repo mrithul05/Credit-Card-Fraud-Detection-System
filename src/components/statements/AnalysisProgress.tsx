@@ -1,6 +1,6 @@
 import { Check, Circle, LoaderCircle } from 'lucide-react'
 
-const steps = ['Reading transaction data', 'Validating transaction fields', 'Running fraud detection model', 'Calculating risk signals', 'Preparing results']
+const steps = ['Reviewing transactions', 'Checking transaction details', 'Analyzing activity', 'Identifying transactions for review', 'Preparing results']
 
 export function AnalysisProgress({ completed, total }: { completed: number; total: number }) {
   const stage = total ? Math.min(steps.length - 1, Math.floor((completed / total) * steps.length)) : 0

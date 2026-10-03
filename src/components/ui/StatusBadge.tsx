@@ -10,7 +10,7 @@ export function StatusBadge({ prediction }: StatusBadgeProps) {
     return <span className="status-badge status-badge--warning"><TriangleAlert size={14} aria-hidden="true" />Potential Fraud</span>
   }
   if (prediction === 'genuine') {
-    return <span className="status-badge status-badge--positive"><ShieldCheck size={14} aria-hidden="true" />Genuine</span>
+    return <span className="status-badge status-badge--positive"><ShieldCheck size={14} aria-hidden="true" />No concerns found</span>
   }
-  return <span className="status-badge status-badge--neutral">No prediction</span>
+  return <span className="status-badge status-badge--neutral">Not analyzed</span>
 }

@@ -12,7 +12,7 @@ export type ExtractionResult = {
 
 export function validateStatementFile(file: File) {
   if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
-    throw new Error('Please choose a PDF statement. Other file formats are not supported in this demo.')
+    throw new Error('Please choose a PDF statement. Other file formats are not supported.')
   }
   if (file.size > MAX_FILE_SIZE) {
     throw new Error('That PDF is larger than 15 MB. Choose a smaller statement to continue.')
@@ -40,7 +40,7 @@ export async function extractStatement(file: File): Promise<ExtractionResult> {
     mode: 'demo',
     transactions: cloneDemoTransactions(),
     rawText,
-    note: 'PDF read successfully, but transaction rows could not be confidently identified from this statement format. Demo transactions are shown so the review can continue.',
+    note: 'This statement format could not be read. Sample transactions are shown for preview and are not from your statement.',
   }
 }
 
